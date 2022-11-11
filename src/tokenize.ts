@@ -1,6 +1,5 @@
 export function tokenize(raw: string) {
 
-
     const length = raw.length
     let pos = 0
 
@@ -56,26 +55,28 @@ export function tokenize(raw: string) {
             pos++
 
             while ((allowedChars.includes(raw[pos]) || raw[pos] === ".") && pos < length) {
-                // adding the char to the string
                 token += raw[pos]
                 pos++
             }
 
             if (BUILT_IN_KEYWORDS.includes(token)) {
+                // if unquoted string is a keyword
                 tokens.push({
                     type: "keyword",
                     value: token
                 })
             } else {
+                // if unquoted string is a variable name
                 tokens.push({
                     type: "variable",
                     value: token
                 })
             }
         } else if (currentChar === "*") {
+            // if currentChar is the "everything" identifier
             pos++
             tokens.push({
-                type: "value",
+                type: "variable",
                 value: "*"
             })
         } else if (["<", ">", "="].includes(currentChar)) {

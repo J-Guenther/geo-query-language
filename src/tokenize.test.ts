@@ -14,7 +14,7 @@ describe('Tokenizer', () => {
             error: false,
             tokens: [
                 { type: 'keyword', value: 'select' },
-                { type: 'value', value: '*' },
+                { type: 'variable', value: '*' },
                 { type: 'keyword', value: 'from' },
                 { type: 'variable', value: 'layer1' },
                 { type: 'keyword', value: 'where' },
@@ -25,6 +25,25 @@ describe('Tokenizer', () => {
         }
 
         expect(tokenize(select1)).to.deep.equal(expectedResult);
+    });
+
+    it('should tokenize statement with quotes', () => {
+
+        const expectedResult = {
+            error: false,
+            tokens: [
+                { type: 'keyword', value: 'select' },
+                { type: 'variable', value: '*' },
+                { type: 'keyword', value: 'from' },
+                { type: 'variable', value: 'layer1' },
+                { type: 'keyword', value: 'where' },
+                { type: 'variable', value: 'layer2.name' },
+                { type: 'operator', value: '==' },
+                { type: 'value', value: 'Spandau' }
+            ]
+        }
+
+        expect(tokenize(select2)).to.deep.equal(expectedResult);
     });
 
     it('should throw error when tokenize select3 statement', () => {
