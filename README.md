@@ -1,3 +1,11 @@
+# Start
+Make sure TypeScript is installed:
+https://www.typescriptlang.org/docs/handbook/typescript-tooling-in-5-minutes.html
+
+Compile project:
+`tsc`
+
+# Ideas
 Select everything from layer1 where the size of the geometry is less than 100
 
 `select * from layer1 where geometry.size < 100`
