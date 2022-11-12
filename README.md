@@ -2,6 +2,9 @@
 Make sure TypeScript is installed:
 https://www.typescriptlang.org/docs/handbook/typescript-tooling-in-5-minutes.html
 
+Setup
+`yarn install`
+
 Compile project:
 `tsc`
 
@@ -54,3 +57,4 @@ or
 
 
 https://css-tricks.com/lets-create-a-tiny-programming-language/
+

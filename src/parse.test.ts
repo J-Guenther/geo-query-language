@@ -1,6 +1,7 @@
 import * as chai from 'chai';
 import {parse} from "./parse";
 import {Select} from "./models/select";
+import {OPERATORS} from "./constants/operators";
 
 const expect = chai.expect;
 describe('Parser', () => {
@@ -19,7 +20,14 @@ describe('Parser', () => {
             ]
 
         const expectedResult: Select = {
-            apply: null, columns: "*", from: {as: null, table: "layer1"}, where: "geometry.size<100"
+            apply: null,
+            columns: "*",
+            from: {as: null, table: {value: "layer1"}},
+            where: {
+                expression: [{value: "geometry.size"}, OPERATORS.LESS, {x: 100}],
+                subgroupOperator: null,
+                subgroup: null
+            }
 
         }
 
