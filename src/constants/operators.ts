@@ -1,4 +1,4 @@
-export enum OPERATORS {
+export enum Operators {
     EQUAL = "==",
     NOT_EQUAL = "!=",
     LESS = "<",

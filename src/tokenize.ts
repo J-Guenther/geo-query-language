@@ -1,12 +1,14 @@
-import {KEYWORDS} from "./constants/keywords";
-import {OPERATORS} from "./constants/operators";
+import {Keywords} from "./constants/keywords";
+import {Operators} from "./constants/operators";
+import {TokenTypes} from "./constants/tokenTypes";
+import {TokenType} from "./models/tokenType";
 
 export function tokenize(raw: string) {
 
     const length = raw.length
     let pos = 0
 
-    let tokens = []
+    let tokens: TokenType[] = []
 
     const allowedChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789äüöß'
 
@@ -36,7 +38,7 @@ export function tokenize(raw: string) {
             }
             pos++
             tokens.push({
-                type: "value",
+                type: TokenTypes.VALUE,
                 value: token
             })
         } else if (!Number.isNaN(Number(currentChar))) {
@@ -50,7 +52,7 @@ export function tokenize(raw: string) {
             }
 
             tokens.push({
-                type: "value",
+                type: TokenTypes.VALUE,
                 value: token
             })
 
@@ -66,7 +68,7 @@ export function tokenize(raw: string) {
             }
 
             tokens.push({
-                type: "function",
+                type: TokenTypes.FUNCTION,
                 value: token
             })
 
@@ -91,7 +93,7 @@ export function tokenize(raw: string) {
 
                 pos++
                 tokens.push({
-                    type: "argument",
+                    type: TokenTypes.ARGUMENT,
                     value: token
                 })
             }
@@ -105,22 +107,22 @@ export function tokenize(raw: string) {
                 pos++
             }
 
-            if (Object.values(KEYWORDS).includes(token as KEYWORDS)) {
+            if (Object.values(Keywords).includes(token as Keywords)) {
                 // if unquoted string is a keyword
                 tokens.push({
-                    type: "keyword",
+                    type: TokenTypes.KEYWORD,
                     value: token
                 })
-            } else if ([OPERATORS.AND.toString(), OPERATORS.OR.toString()].includes(token)) {
+            } else if ([Operators.AND.toString(), Operators.OR.toString()].includes(token)) {
                 // if unquoted string is a logical operator
                 tokens.push({
-                    type: "operator",
+                    type: TokenTypes.OPERATOR,
                     value: token
                 })
             } else {
                 // if unquoted string is a variable name
                 tokens.push({
-                    type: "variable",
+                    type: TokenTypes.VARIABLE,
                     value: token
                 })
             }
@@ -128,7 +130,7 @@ export function tokenize(raw: string) {
             // if currentChar is the "everything" identifier
             pos++
             tokens.push({
-                type: "variable",
+                type: TokenTypes.VARIABLE,
                 value: "*"
             })
         } else if (["<", ">", "="].includes(currentChar)) {
@@ -141,20 +143,20 @@ export function tokenize(raw: string) {
             }
 
             tokens.push({
-                type: "operator",
+                type: TokenTypes.OPERATOR,
                 value: token
             })
         } else if (["(", ")"].includes(currentChar)) {
             if ("(" === currentChar) {
                 openParenthesis++
                 tokens.push({
-                    type: "group_start",
+                    type: TokenTypes.GROUP_START,
                     value: currentChar
                 })
             } else {
                 closedParenthesis++
                 tokens.push({
-                    type: "group_end",
+                    type: TokenTypes.GROUP_END,
                     value: currentChar
                 })
             }

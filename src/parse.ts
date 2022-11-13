@@ -1,8 +1,10 @@
 import {Select} from "./models/select";
 import {Group} from "./models/group";
-import {OPERATORS} from "./constants/operators";
+import {Operators} from "./constants/operators";
+import {TokenTypes} from "./constants/tokenTypes";
+import {TokenType} from "./models/tokenType";
 
-export function parse(tokens: { type: string, value: string }[]) {
+export function parse(tokens: TokenType[]) {
     const select: Select = {apply: null, columns: null, from: {as: null, table: null}, where: null}
 
     const len = tokens.length
@@ -10,12 +12,12 @@ export function parse(tokens: { type: string, value: string }[]) {
     while (pos < len) {
         const token = tokens[pos]
         console.log(token)
-        if (token.type === "keyword") {
+        if (token.type === TokenTypes.KEYWORD) {
             if (token.value === "select") {
                 if (select.columns) {
                     return console.log('Found unexpected use of select')
                 }
-                if (tokens[pos + 1].type !== "variable") {
+                if (tokens[pos + 1].type !== TokenTypes.VARIABLE) {
                     return console.log(`Unexpected token ${tokens[pos + 1].type}, expected column name or *`)
                 }
 
@@ -30,7 +32,7 @@ export function parse(tokens: { type: string, value: string }[]) {
                 if (select.from.table) {
                     return console.log('Found unexpected use of from')
                 }
-                if (tokens[pos + 1].type !== "variable") {
+                if (tokens[pos + 1].type !== TokenTypes.VARIABLE) {
                     return console.log(`Unexpected token ${tokens[pos + 1].type}, expected field name`)
                 }
 
@@ -43,7 +45,7 @@ export function parse(tokens: { type: string, value: string }[]) {
                 if (select.where) {
                     return console.log('Found unexpected use of where')
                 }
-                if (tokens[pos + 1].type !== "variable") {
+                if (tokens[pos + 1].type !== TokenTypes.VARIABLE) {
                     return console.log(`Unexpected token ${tokens[pos + 1].type}, expected field name or function`)
                 }
 
@@ -52,14 +54,14 @@ export function parse(tokens: { type: string, value: string }[]) {
                     expression: [], subgroup: null, subgroupOperator: null
                 }
 
-                while (pos < len && tokens[pos].type != "keyword") {
-                    if (tokens[pos].type === "variable") {
+                while (pos < len && tokens[pos].type != TokenTypes.KEYWORD) {
+                    if (tokens[pos].type === TokenTypes.VARIABLE) {
                         group.expression.push({value: tokens[pos].value})
-                    } else if (tokens[pos].type === "operator") {
-                        const indexOfValueInEnum = Object.values(OPERATORS).indexOf(tokens[pos].value as OPERATORS)
-                        const key = Object.keys(OPERATORS)[indexOfValueInEnum]
-                        group.expression.push(OPERATORS[key])
-                    } else if(tokens[pos].type === "value") {
+                    } else if (tokens[pos].type === TokenTypes.OPERATOR) {
+                        const indexOfValueInEnum = Object.values(Operators).indexOf(tokens[pos].value as Operators)
+                        const key = Object.keys(Operators)[indexOfValueInEnum]
+                        group.expression.push(Operators[key])
+                    } else if(tokens[pos].type === TokenTypes.VALUE) {
                         let x
                         if (isNumber(tokens[pos].value)) {
                             x = Number(tokens[pos].value)
