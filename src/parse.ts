@@ -45,8 +45,10 @@ export function parse(tokens: TokenType[]) {
                 if (select.where) {
                     return console.log('Found unexpected use of where')
                 }
-                if (tokens[pos + 1].type !== TokenTypes.VARIABLE) {
-                    return console.log(`Unexpected token ${tokens[pos + 1].type}, expected field name or function`)
+                if (tokens[pos + 1].type !== TokenTypes.VARIABLE &&
+                    tokens[pos + 1].type !== TokenTypes.VALUE &&
+                    tokens[pos + 1].type !== TokenTypes.FUNCTION) {
+                    return console.log(`Unexpected token ${tokens[pos + 1].type}, expected field name, value or function`)
                 }
 
                 pos++
@@ -55,20 +57,29 @@ export function parse(tokens: TokenType[]) {
                 }
 
                 while (pos < len && tokens[pos].type != TokenTypes.KEYWORD) {
-                    if (tokens[pos].type === TokenTypes.VARIABLE) {
-                        group.expression.push({value: tokens[pos].value})
-                    } else if (tokens[pos].type === TokenTypes.OPERATOR) {
-                        const indexOfValueInEnum = Object.values(Operators).indexOf(tokens[pos].value as Operators)
+                    let currentToken = tokens[pos]
+                    if (currentToken.type === TokenTypes.VARIABLE) {
+                        group.expression.push({value: currentToken.value})
+                    } else if (currentToken.type === TokenTypes.OPERATOR) {
+                        const indexOfValueInEnum = Object.values(Operators).indexOf(currentToken.value as Operators)
                         const key = Object.keys(Operators)[indexOfValueInEnum]
                         group.expression.push(Operators[key])
-                    } else if(tokens[pos].type === TokenTypes.VALUE) {
+                    } else if(currentToken.type === TokenTypes.VALUE) {
                         let x
-                        if (isNumber(tokens[pos].value)) {
-                            x = Number(tokens[pos].value)
+                        if (isNumber(currentToken.value)) {
+                            x = Number(currentToken.value)
                         } else {
-                            x = tokens[pos].value
+                            x = currentToken.value
                         }
                         group.expression.push({x: x})
+                    } else if (currentToken.type === TokenTypes.FUNCTION) {
+                        const functionName = currentToken.value
+                        pos++
+                        if (tokens[pos].type !== TokenTypes.ARGUMENT) {
+                            return console.log('Function has no arguments')
+                        }
+                        const functionArgument = tokens[pos].value
+                        group.expression.push({name: functionName, argument: functionArgument})
                     } else {
                         return console.log('Found unexpected token in where clause')
                     }
