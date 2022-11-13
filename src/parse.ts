@@ -1,5 +1,5 @@
 import {Select} from "./models/select";
-import {Group} from "./models/group";
+import {Expression} from "./models/expression";
 import {Operators} from "./constants/operators";
 import {TokenTypes} from "./constants/tokenTypes";
 import {TokenType} from "./models/tokenType";
@@ -52,41 +52,9 @@ export function parse(tokens: TokenType[]) {
                 }
 
                 pos++
-                const group: Group = {
-                    expression: [], subgroup: null, subgroupOperator: null
-                }
-
-                while (pos < len && tokens[pos].type != TokenTypes.KEYWORD) {
-                    let currentToken = tokens[pos]
-                    if (currentToken.type === TokenTypes.VARIABLE) {
-                        group.expression.push({value: currentToken.value})
-                    } else if (currentToken.type === TokenTypes.OPERATOR) {
-                        const indexOfValueInEnum = Object.values(Operators).indexOf(currentToken.value as Operators)
-                        const key = Object.keys(Operators)[indexOfValueInEnum]
-                        group.expression.push(Operators[key])
-                    } else if(currentToken.type === TokenTypes.VALUE) {
-                        let x
-                        if (isNumber(currentToken.value)) {
-                            x = Number(currentToken.value)
-                        } else {
-                            x = currentToken.value
-                        }
-                        group.expression.push({x: x})
-                    } else if (currentToken.type === TokenTypes.FUNCTION) {
-                        const functionName = currentToken.value
-                        pos++
-                        if (tokens[pos].type !== TokenTypes.ARGUMENT) {
-                            return console.log('Function has no arguments')
-                        }
-                        const functionArgument = tokens[pos].value
-                        group.expression.push({name: functionName, argument: functionArgument})
-                    } else {
-                        return console.log('Found unexpected token in where clause')
-                    }
-
-                    pos++
-                }
-                select.where = group
+                const parsedResult = parseExpressions(pos, len, tokens, false);
+                pos = parsedResult.pos
+                select.where = parsedResult.expression
             }
         } else {
             return console.log(`Unexpected token ${token.type}`)
@@ -94,6 +62,61 @@ export function parse(tokens: TokenType[]) {
     }
 
     return select
+}
+
+function parseExpressions(pos: number, len: number, tokens: TokenType[], sub: boolean) {
+
+    const expression: Expression = {
+        tokenValues: []
+    }
+
+    while (pos < len && tokens[pos].type != TokenTypes.KEYWORD) {
+        let currentToken = tokens[pos]
+        if (currentToken.type === TokenTypes.VARIABLE) {
+            expression.tokenValues.push({value: currentToken.value})
+        } else if (currentToken.type === TokenTypes.OPERATOR) {
+            const indexOfValueInEnum = Object.values(Operators).indexOf(currentToken.value as Operators)
+            const key = Object.keys(Operators)[indexOfValueInEnum]
+            expression.tokenValues.push(Operators[key])
+        } else if (currentToken.type === TokenTypes.VALUE) {
+            let x
+            if (isNumber(currentToken.value)) {
+                x = Number(currentToken.value)
+            } else {
+                x = currentToken.value
+            }
+            expression.tokenValues.push({x: x})
+        } else if (currentToken.type === TokenTypes.FUNCTION) {
+            const functionName = currentToken.value
+            pos++
+            if (tokens[pos].type !== TokenTypes.ARGUMENT) {
+                throw Error('Function has no arguments')
+            }
+            const functionArgument = tokens[pos].value
+            expression.tokenValues.push({name: functionName, argument: functionArgument})
+        } else if (currentToken.type === TokenTypes.GROUP_START) {
+
+            if (tokens[pos - 1].type !== TokenTypes.OPERATOR) {
+                throw Error("There needs to be an operator before an opening parenthesis")
+            }
+
+            pos++
+            const parsedSubExpression = parseExpressions(pos, len, tokens, true)
+            pos = parsedSubExpression.pos
+            expression.tokenValues.push(parsedSubExpression.expression)
+        } else if ((currentToken.type === TokenTypes.GROUP_END)) {
+            pos++
+            return {pos, expression: expression};
+        }
+        else {
+            throw Error('Found unexpected token in where clause')
+        }
+        pos++
+    }
+    if (sub) {
+        throw Error("Missing closing parenthesis")
+    }
+    return {pos, expression: expression};
 }
 
 function isNumber(str: string): boolean {

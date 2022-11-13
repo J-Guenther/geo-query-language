@@ -1,6 +1,7 @@
+import {Operators} from "../constants/operators";
+import {Variable} from "./variable";
+import {QlFunction} from "./qlFunction";
+
 export interface Expression {
-    hierarchy: number
-    value1: number | string | Expression
-    value2: number | string | Expression
-    operator: "<"
+    tokenValues: (Value | Variable | QlFunction | Operators | Expression)[],
 }

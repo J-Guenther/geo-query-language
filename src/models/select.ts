@@ -1,5 +1,5 @@
 import {Variable} from "./variable";
-import {Group} from "./group";
+import {Expression} from "./expression";
 
 export interface Select {
     columns: [string] | "*",
@@ -7,6 +7,6 @@ export interface Select {
         "table": Variable,
         "as": string | null
     },
-    "where": Group | null,
+    "where": Expression | null,
     "apply": string | null
 }
