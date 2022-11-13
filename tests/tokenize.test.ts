@@ -13,11 +13,14 @@ describe('Tokenizer', () => {
     const select6 = 'select * from layer1 where layer1.name == "Spandau" or (Intersect(layer2) and layer1.type == "Forest"'
     const select7 = 'select * from layer1 where layer1.name == "Spandau" and Intersectlayer2)'
     const select8 = 'select * from layer1 where layer1.name == "Spandau" and Intersect(layer2'
+    const select9 = 'select * from layer1 where layer1.name == "Spandau'
+    const select10 = 'select * from layer1 where layer1.name == "Spandau" and Intersect layer2'
+    const select11 = 'select * from layer1 where layer1.name == "Spandau" and Intersect()'
+    const select12 = 'select * from layer1 where layer1.name == "Spandau" or Intersect(layer2) and layer1.type == "Forest")'
 
     it('should tokenize select1 statement', () => {
 
         const expectedResult = {
-            error: false,
             tokens: [
                 { type: TokenTypes.KEYWORD, value: 'select' },
                 { type: TokenTypes.VARIABLE, value: '*' },
@@ -36,7 +39,6 @@ describe('Tokenizer', () => {
     it('should tokenize statement with quotes', () => {
 
         const expectedResult = {
-            error: false,
             tokens: [
                 { type: TokenTypes.KEYWORD, value: 'select' },
                 { type: TokenTypes.VARIABLE, value: '*' },
@@ -54,16 +56,13 @@ describe('Tokenizer', () => {
 
     it('should throw error when tokenize select3 statement', () => {
 
-        const expectedResult = {
-            error: "Unexpected character -",
-        }
+        const expectedResult = "Unexpected character -"
 
-        expect(tokenize(select3)).to.deep.equal(expectedResult);
+        expect(() => tokenize(select3)).to.throw(expectedResult);
     });
 
     it('should tokenize select4 statement with function', () => {
         const expectedResult = {
-            error: false,
             tokens: [
                 { type: TokenTypes.KEYWORD, value: 'select' },
                 { type: TokenTypes.VARIABLE, value: '*' },
@@ -84,7 +83,6 @@ describe('Tokenizer', () => {
 
     it('should tokenize select5 statement with parenthesis', () => {
         const expectedResult = {
-            error: false,
             tokens: [
                 { type: TokenTypes.KEYWORD, value: 'select' },
                 { type: TokenTypes.VARIABLE, value: '*' },
@@ -110,27 +108,60 @@ describe('Tokenizer', () => {
     })
 
     it('should throw error because of missing closing brackets', () => {
-        const expectedResult = {
-            error: "Unterminated parenthesis",
-        }
+        const expectedResult = "Unterminated parenthesis"
 
-        expect(tokenize(select6)).to.deep.equal(expectedResult);
+        expect(() => tokenize(select6)).to.throw(expectedResult);
     })
 
     it('should throw error because no opening brackets after function name', () => {
-        const expectedResult = {
-            error: "Expect function arguments for: Intersectlayer2",
-        }
+        const expectedResult = "Expect function arguments for: Intersectlayer2"
 
-        expect(tokenize(select7)).to.deep.equal(expectedResult);
+        expect(() => tokenize(select7)).to.throw(expectedResult);
     })
 
     it('should throw error because no closing brackets after function arguments', () => {
+        const expectedResult = "Unterminated parenthesis"
+
+        expect(() => tokenize(select8)).to.throw(expectedResult);
+    })
+
+    it('should throw error because of unterminated string', () => {
+        const expectedResult = "Unterminated string"
+
+        expect(() => tokenize(select9)).to.throw(expectedResult);
+    })
+
+    it('should throw error because no opening brackets after function name but whitespace', () => {
+        const expectedResult = "Expect function arguments for: Intersect"
+
+        expect(() => tokenize(select10)).to.throw(expectedResult);
+    })
+
+    it('should tokenize function with empty arguments', () => {
+
         const expectedResult = {
-            error: "Unterminated parenthesis",
+            tokens: [
+                { type: TokenTypes.KEYWORD, value: 'select' },
+                { type: TokenTypes.VARIABLE, value: '*' },
+                { type: TokenTypes.KEYWORD, value: 'from' },
+                { type: TokenTypes.VARIABLE, value: 'layer1' },
+                { type: TokenTypes.KEYWORD, value: 'where' },
+                { type: TokenTypes.VARIABLE, value: 'layer1.name' },
+                { type: TokenTypes.OPERATOR, value: '==' },
+                { type: TokenTypes.VALUE, value: 'Spandau' },
+                { type: TokenTypes.OPERATOR, value: 'and' },
+                { type: TokenTypes.FUNCTION, value: 'Intersect' },
+                { type: TokenTypes.ARGUMENT, value: '' },
+            ]
         }
 
-        expect(tokenize(select8)).to.deep.equal(expectedResult);
+        expect(tokenize(select11)).to.deep.equal(expectedResult);
+    })
+
+    it('should throw error because opening brackets in expression are missing', () => {
+        const expectedResult = "Unterminated parenthesis"
+
+        expect(() => tokenize(select12)).to.throw(expectedResult);
     })
 
 });

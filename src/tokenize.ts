@@ -3,7 +3,7 @@ import {Operators} from "./constants/operators";
 import {TokenTypes} from "./constants/tokenTypes";
 import {TokenType} from "./models/tokenType";
 
-export function tokenize(raw: string) {
+export function tokenize(raw: string): Error | {tokens: TokenType[]} {
 
     const length = raw.length
     let pos = 0
@@ -32,9 +32,7 @@ export function tokenize(raw: string) {
             }
 
             if (raw[pos] !== '"') {
-                return {
-                    error: "Unterminated string"
-                }
+                throw new Error("Unterminated string")
             }
             pos++
             tokens.push({
@@ -73,9 +71,7 @@ export function tokenize(raw: string) {
             })
 
             if (raw[pos] !== '(') {
-                return {
-                    error: "Expect function arguments for: " + token
-                }
+                throw new Error("Expect function arguments for: " + token)
             } else {
                 // parse argument
                 pos++
@@ -86,9 +82,7 @@ export function tokenize(raw: string) {
                 }
 
                 if (raw[pos] !== ')') {
-                    return {
-                        error: "Unterminated parenthesis"
-                    }
+                    throw new Error("Unterminated parenthesis")
                 }
 
                 pos++
@@ -163,20 +157,15 @@ export function tokenize(raw: string) {
             pos++
         }
         else { // we have an invalid character in our code
-            return {
-                error: `Unexpected character ${raw[pos]}`
-            }
+            throw new Error(`Unexpected character ${raw[pos]}`)
         }
     }
 
     if (openParenthesis !== closedParenthesis) {
-        return {
-            error: "Unterminated parenthesis"
-        }
+        throw new Error("Unterminated parenthesis")
     }
 
     return {
-        error: false,
         tokens
     }
 }

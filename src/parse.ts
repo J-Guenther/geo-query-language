@@ -11,14 +11,18 @@ export function parse(tokens: TokenType[]) {
     let pos = 0
     while (pos < len) {
         const token = tokens[pos]
-        console.log(token)
+
+        if (pos == 0 && token.value !== "select") {
+            throw new Error('Statement needs to start with select')
+        }
+
         if (token.type === TokenTypes.KEYWORD) {
             if (token.value === "select") {
                 if (select.columns) {
-                    return console.log('Found unexpected use of select')
+                    throw new Error('Found unexpected use of select')
                 }
                 if (tokens[pos + 1].type !== TokenTypes.VARIABLE) {
-                    return console.log(`Unexpected token ${tokens[pos + 1].type}, expected column name or *`)
+                    throw new Error(`Unexpected token ${tokens[pos + 1].type}, expected column name or *`)
                 }
 
                 if (tokens[pos + 1].value === "*") {
@@ -29,11 +33,11 @@ export function parse(tokens: TokenType[]) {
 
                 pos += 2
             } else if (token.value === "from") {
-                if (select.from.table) {
-                    return console.log('Found unexpected use of from')
+                if (select.from.table || select.where?.tokenValues.length > 0 || !select.columns) {
+                    throw new Error('Found unexpected use of from')
                 }
                 if (tokens[pos + 1].type !== TokenTypes.VARIABLE) {
-                    return console.log(`Unexpected token ${tokens[pos + 1].type}, expected field name`)
+                    throw new Error(`Unexpected token ${tokens[pos + 1].type}, expected field name`)
                 }
 
                 select.from.table = {value: tokens[pos + 1].value}
@@ -41,30 +45,29 @@ export function parse(tokens: TokenType[]) {
                 pos += 2
 
             } else if (token.value === "where") {
-                console.log("WHERE!")
-                if (select.where) {
-                    return console.log('Found unexpected use of where')
+                if (select.where || !select.columns || !select.from.table) {
+                    throw new Error('Found unexpected use of where')
                 }
                 if (tokens[pos + 1].type !== TokenTypes.VARIABLE &&
                     tokens[pos + 1].type !== TokenTypes.VALUE &&
                     tokens[pos + 1].type !== TokenTypes.FUNCTION) {
-                    return console.log(`Unexpected token ${tokens[pos + 1].type}, expected field name, value or function`)
+                    throw new Error(`Unexpected token ${tokens[pos + 1].type}, expected field name, value or function`)
                 }
 
                 pos++
-                const parsedResult = parseExpressions(pos, len, tokens, false);
+                const parsedResult = parseExpression(pos, len, tokens, false);
                 pos = parsedResult.pos
                 select.where = parsedResult.expression
             }
         } else {
-            return console.log(`Unexpected token ${token.type}`)
+            throw new Error(`Unexpected token ${token.type}`)
         }
     }
 
     return select
 }
 
-function parseExpressions(pos: number, len: number, tokens: TokenType[], sub: boolean) {
+function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boolean) {
 
     const expression: Expression = {
         tokenValues: []
@@ -101,7 +104,7 @@ function parseExpressions(pos: number, len: number, tokens: TokenType[], sub: bo
             }
 
             pos++
-            const parsedSubExpression = parseExpressions(pos, len, tokens, true)
+            const parsedSubExpression = parseExpression(pos, len, tokens, true)
             pos = parsedSubExpression.pos
             expression.tokenValues.push(parsedSubExpression.expression)
         } else if ((currentToken.type === TokenTypes.GROUP_END)) {
