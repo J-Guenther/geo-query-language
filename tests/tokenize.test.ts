@@ -17,6 +17,7 @@ describe('Tokenizer', () => {
     const select10 = 'select * from layer1 where layer1.name == "Spandau" and Intersect layer2'
     const select11 = 'select * from layer1 where layer1.name == "Spandau" and Intersect()'
     const select12 = 'select * from layer1 where layer1.name == "Spandau" or Intersect(layer2) and layer1.type == "Forest")'
+    const select13 = "select name, type from layer1 where geometry.size < 100"
 
     it('should tokenize select1 statement', () => {
 
@@ -162,6 +163,26 @@ describe('Tokenizer', () => {
         const expectedResult = "Unterminated parenthesis"
 
         expect(() => tokenize(select12)).to.throw(expectedResult);
+    })
+
+    it('should tokenize function with multiple columns selected', () => {
+
+        const expectedResult = {
+            tokens: [
+                { type: TokenTypes.KEYWORD, value: 'select' },
+                { type: TokenTypes.VARIABLE, value: 'name' },
+                { type: TokenTypes.SEPARATOR, value: ',' },
+                { type: TokenTypes.VARIABLE, value: 'type' },
+                { type: TokenTypes.KEYWORD, value: 'from' },
+                { type: TokenTypes.VARIABLE, value: 'layer1' },
+                { type: TokenTypes.KEYWORD, value: 'where' },
+                { type: TokenTypes.VARIABLE, value: 'geometry.size' },
+                { type: TokenTypes.OPERATOR, value: '<' },
+                { type: TokenTypes.VALUE, value: '100' }
+            ]
+        }
+
+        expect(tokenize(select13)).to.deep.equal(expectedResult);
     })
 
 });

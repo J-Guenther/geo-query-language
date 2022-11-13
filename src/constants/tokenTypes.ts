@@ -6,5 +6,6 @@ export enum TokenTypes {
     FUNCTION = "function",
     ARGUMENT = "argument",
     GROUP_START = "group_start",
-    GROUP_END = "group_end"
+    GROUP_END = "group_end",
+    SEPARATOR = "separator",
 }

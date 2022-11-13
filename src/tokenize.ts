@@ -3,7 +3,7 @@ import {Operators} from "./constants/operators";
 import {TokenTypes} from "./constants/tokenTypes";
 import {TokenType} from "./models/tokenType";
 
-export function tokenize(raw: string): Error | {tokens: TokenType[]} {
+export function tokenize(raw: string): Error | { tokens: TokenType[] } {
 
     const length = raw.length
     let pos = 0
@@ -38,6 +38,12 @@ export function tokenize(raw: string): Error | {tokens: TokenType[]} {
             tokens.push({
                 type: TokenTypes.VALUE,
                 value: token
+            })
+        } else if (currentChar === ",") {
+            pos++
+            tokens.push({
+                type: TokenTypes.SEPARATOR,
+                value: currentChar
             })
         } else if (!Number.isNaN(Number(currentChar))) {
             // if number starts
@@ -155,8 +161,7 @@ export function tokenize(raw: string): Error | {tokens: TokenType[]} {
                 })
             }
             pos++
-        }
-        else { // we have an invalid character in our code
+        } else { // we have an invalid character in our code
             throw new Error(`Unexpected character ${raw[pos]}`)
         }
     }
