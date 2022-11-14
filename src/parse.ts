@@ -21,17 +21,28 @@ export function parse(tokens: TokenType[]) {
                 if (select.columns) {
                     throw new Error('Found unexpected use of select')
                 }
-                if (tokens[pos + 1].type !== TokenTypes.VARIABLE) {
-                    throw new Error(`Unexpected token ${tokens[pos + 1].type}, expected column name or *`)
+                pos++
+                if (tokens[pos].type !== TokenTypes.VARIABLE) {
+                    throw new Error(`Unexpected token ${tokens[pos].type}, expected column name or *`)
                 }
 
-                if (tokens[pos + 1].value === "*") {
-                    select.columns = tokens[pos + 1].value as "*"
+                if (tokens[pos].value === "*") {
+                    select.columns = tokens[pos].value as "*"
+                    pos ++
                 } else {
-                    select.columns = [tokens[pos + 1].value]
-                }
+                    select.columns = []
+                    while (pos < len && (tokens[pos].type === TokenTypes.SEPARATOR || tokens[pos].type === TokenTypes.VARIABLE)) {
 
-                pos += 2
+                        if (tokens[pos].value === "*") {
+                            throw new Error("Expected specific column name, not *")
+                        }
+
+                        if (tokens[pos].type === TokenTypes.VARIABLE) {
+                            select.columns.push(tokens[pos].value)
+                        }
+                        pos++
+                    }
+                }
             } else if (token.value === "from") {
                 if (select.from.table || select.where?.tokenValues.length > 0 || !select.columns) {
                     throw new Error('Found unexpected use of from')
@@ -110,8 +121,7 @@ function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boo
         } else if ((currentToken.type === TokenTypes.GROUP_END)) {
             pos++
             return {pos, expression: expression};
-        }
-        else {
+        } else {
             throw Error('Found unexpected token in where clause')
         }
         pos++

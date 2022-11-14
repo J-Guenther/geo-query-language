@@ -350,5 +350,59 @@ describe('Parser', () => {
         expect(() => parse(tokens)).to.throw(expectedResult)
     });
 
+    it('should parse seperated columns', function () {
+
+        const tokens = [
+                { type: TokenTypes.KEYWORD, value: 'select' },
+                { type: TokenTypes.VARIABLE, value: 'name' },
+                { type: TokenTypes.SEPARATOR, value: ',' },
+                { type: TokenTypes.VARIABLE, value: 'type' },
+                { type: TokenTypes.KEYWORD, value: 'from' },
+                { type: TokenTypes.VARIABLE, value: 'layer1' },
+                { type: TokenTypes.KEYWORD, value: 'where' },
+                { type: TokenTypes.VARIABLE, value: 'name' },
+                { type: TokenTypes.OPERATOR, value: '==' },
+                { type: TokenTypes.VALUE, value: 'Spandau' }
+            ]
+
+        const expectedResult: Select = {
+            apply: null,
+            columns: ["name", "type"],
+            from: {as: null, table: {value: "layer1"}},
+            where: {
+                tokenValues: [{value: "name"}, Operators.EQUAL, {x: "Spandau"}],
+            }
+        }
+
+        expect(parse(tokens)).to.deep.equal(expectedResult)
+
+    })
+
+    it('should parse only one column', function () {
+
+        const tokens = [
+            { type: TokenTypes.KEYWORD, value: 'select' },
+            { type: TokenTypes.VARIABLE, value: 'name' },
+            { type: TokenTypes.KEYWORD, value: 'from' },
+            { type: TokenTypes.VARIABLE, value: 'layer1' },
+            { type: TokenTypes.KEYWORD, value: 'where' },
+            { type: TokenTypes.VARIABLE, value: 'name' },
+            { type: TokenTypes.OPERATOR, value: '==' },
+            { type: TokenTypes.VALUE, value: 'Spandau' }
+        ]
+
+        const expectedResult: Select = {
+            apply: null,
+            columns: ["name"],
+            from: {as: null, table: {value: "layer1"}},
+            where: {
+                tokenValues: [{value: "name"}, Operators.EQUAL, {x: "Spandau"}],
+            }
+        }
+
+        expect(parse(tokens)).to.deep.equal(expectedResult)
+
+    })
+
 
 });
