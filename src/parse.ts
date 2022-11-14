@@ -3,6 +3,9 @@ import {Expression} from "./models/expression";
 import {Operators} from "./constants/operators";
 import {TokenTypes} from "./constants/tokenTypes";
 import {TokenType} from "./models/tokenType";
+import {Value} from "./models/value";
+import {GeoQLFunction} from "./models/geoQLFunction";
+import {Variable} from "./models/variable";
 
 export function parse(tokens: TokenType[]) {
     const select: Select = {apply: null, columns: null, from: {as: null, table: null}, where: null}
@@ -80,14 +83,12 @@ export function parse(tokens: TokenType[]) {
 
 function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boolean) {
 
-    const expression: Expression = {
-        tokenValues: []
-    }
+    const expression: Expression = new Expression([])
 
     while (pos < len && tokens[pos].type != TokenTypes.KEYWORD) {
         let currentToken = tokens[pos]
         if (currentToken.type === TokenTypes.VARIABLE) {
-            expression.tokenValues.push({value: currentToken.value})
+            expression.tokenValues.push(new Variable(currentToken.value))
         } else if (currentToken.type === TokenTypes.OPERATOR) {
             const indexOfValueInEnum = Object.values(Operators).indexOf(currentToken.value as Operators)
             const key = Object.keys(Operators)[indexOfValueInEnum]
@@ -99,7 +100,7 @@ function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boo
             } else {
                 x = currentToken.value
             }
-            expression.tokenValues.push({x: x})
+            expression.tokenValues.push(new Value(x))
         } else if (currentToken.type === TokenTypes.FUNCTION) {
             const functionName = currentToken.value
             pos++
@@ -107,7 +108,7 @@ function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boo
                 throw Error('Function has no arguments')
             }
             const functionArgument = tokens[pos].value
-            expression.tokenValues.push({name: functionName, argument: functionArgument})
+            expression.tokenValues.push(new GeoQLFunction(functionName, functionArgument))
         } else if (currentToken.type === TokenTypes.GROUP_START) {
 
             if (tokens[pos - 1].type !== TokenTypes.OPERATOR) {
@@ -120,7 +121,7 @@ function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boo
             expression.tokenValues.push(parsedSubExpression.expression)
         } else if ((currentToken.type === TokenTypes.GROUP_END)) {
             pos++
-            return {pos, expression: expression};
+            return {pos, expression};
         } else {
             throw Error('Found unexpected token in where clause')
         }
@@ -129,7 +130,7 @@ function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boo
     if (sub) {
         throw Error("Missing closing parenthesis")
     }
-    return {pos, expression: expression};
+    return {pos, expression};
 }
 
 function isNumber(str: string): boolean {
