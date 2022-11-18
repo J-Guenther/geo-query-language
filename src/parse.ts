@@ -107,7 +107,14 @@ function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boo
             if (tokens[pos].type !== TokenTypes.ARGUMENT) {
                 throw Error('Function has no arguments')
             }
-            const functionArgument = tokens[pos].value
+
+            let functionArgument
+            if (tokens[pos].subtype === TokenTypes.VARIABLE) {
+                functionArgument = new Variable(tokens[pos].value)
+            } else {
+                // TODO shouldn't this be a Value as well?
+                functionArgument = tokens[pos].value
+            }
             expression.tokenValues.push(new GeoQLFunction(functionName, functionArgument))
         } else if (currentToken.type === TokenTypes.GROUP_START) {
 

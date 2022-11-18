@@ -82,9 +82,27 @@ export function tokenize(raw: string): Error | { tokens: TokenType[] } {
                 // parse argument
                 pos++
                 token = ""
-                while ((allowedChars.includes(raw[pos]) || raw[pos] === ".") && raw[pos] !== ")" && pos < length) {
+                let subtype = TokenTypes.VARIABLE
+
+
+                if(raw[pos] === "\"") {
+                    subtype = TokenTypes.VALUE
+                    pos++
+                } else if (raw[pos] === ")") {
+                    // if no arguments were given then TokenType is also value but with an empty string
+                    subtype = TokenTypes.VALUE
+                }
+                while ((allowedChars.includes(raw[pos]) || raw[pos] === ".") && raw[pos] !== ")" && raw[pos] !== "\"" && pos < length) {
                     token += raw[pos]
                     pos++
+                }
+
+                if (subtype == TokenTypes.VALUE && token.length) {
+                    if (raw[pos] !== '\"') {
+                        throw new Error("Unterminated quotations")
+                    } else {
+                        pos++
+                    }
                 }
 
                 if (raw[pos] !== ')') {
@@ -94,7 +112,8 @@ export function tokenize(raw: string): Error | { tokens: TokenType[] } {
                 pos++
                 tokens.push({
                     type: TokenTypes.ARGUMENT,
-                    value: token
+                    value: token,
+                    subtype: subtype
                 })
             }
         } else if (allowedChars.includes(currentChar)) {

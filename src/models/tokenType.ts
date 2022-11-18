@@ -2,5 +2,6 @@ import {TokenTypes} from "../constants/tokenTypes";
 
 export interface TokenType {
     type: TokenTypes,
-    value: string
+    value: string,
+    subtype?: TokenTypes | TokenTypes
 }

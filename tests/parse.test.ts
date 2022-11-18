@@ -3,6 +3,7 @@ import {parse} from "../src";
 import {Select} from "../src/models/select";
 import {Operators} from "../src/constants/operators";
 import {TokenTypes} from "../src/constants/tokenTypes";
+import {TokenType} from "../src/models/tokenType";
 
 const expect = chai.expect;
 describe('Parser', () => {
@@ -35,14 +36,14 @@ describe('Parser', () => {
 
     it('should parse token statement with function', () => {
 
-        const tokens = [
+        const tokens: TokenType[] = [
             {type: TokenTypes.KEYWORD, value: 'select'},
             {type: TokenTypes.VARIABLE, value: '*'},
             {type: TokenTypes.KEYWORD, value: 'from'},
             {type: TokenTypes.VARIABLE, value: 'layer1'},
             {type: TokenTypes.KEYWORD, value: 'where'},
             {type: TokenTypes.FUNCTION, value: 'Intersect'},
-            {type: TokenTypes.ARGUMENT, value: 'layer2.geometry'},
+            {type: TokenTypes.ARGUMENT, value: 'layer2.geometry', subtype: TokenTypes.VARIABLE},
             {type: TokenTypes.OPERATOR, value: 'and'},
             {type: TokenTypes.VARIABLE, value: 'geometry.size'},
             {type: TokenTypes.OPERATOR, value: '<'},
@@ -56,7 +57,7 @@ describe('Parser', () => {
             where: {
                 tokenValues: [{
                     name: "Intersect",
-                    argument: "layer2.geometry"
+                    argument: {value: "layer2.geometry"}
                 }, Operators.AND, {value: "geometry.size"}, Operators.LESS, {x: 100}],
             }
 
@@ -67,14 +68,14 @@ describe('Parser', () => {
 
     it('should parse token statement with parenthesis', () => {
 
-        const tokens = [
+        const tokens: TokenType[] = [
             {type: TokenTypes.KEYWORD, value: 'select'},
             {type: TokenTypes.VARIABLE, value: '*'},
             {type: TokenTypes.KEYWORD, value: 'from'},
             {type: TokenTypes.VARIABLE, value: 'layer1'},
             {type: TokenTypes.KEYWORD, value: 'where'},
             {type: TokenTypes.FUNCTION, value: 'Intersect'},
-            {type: TokenTypes.ARGUMENT, value: 'layer2.geometry'},
+            {type: TokenTypes.ARGUMENT, value: 'layer2.geometry', subtype: TokenTypes.VARIABLE},
             {type: TokenTypes.OPERATOR, value: 'and'},
             {type: TokenTypes.GROUP_START, value: '('},
             {type: TokenTypes.VARIABLE, value: 'geometry.size'},
@@ -95,7 +96,7 @@ describe('Parser', () => {
                 tokenValues: [
                     {
                         name: "Intersect",
-                        argument: "layer2.geometry"
+                        argument: {value: "layer2.geometry"}
                     },
                     Operators.AND,
                     {tokenValues: [{value: "geometry.size"}, Operators.LESS, {x: 100}, Operators.OR, {value: "geometry.size"}, Operators.EQUAL, {x: 200}]}]

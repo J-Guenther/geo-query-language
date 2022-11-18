@@ -11,13 +11,17 @@ export function runStatement(select: Select) {
 
     const featureCollection = namespace.getFeatureCollection(select.from.table.value)
 
-    return expressionToString(select.where).slice(0, -1)
+    const expression = expressionToString(select.where)
+    if (expression.endsWith(" ")) {
+        return expression.slice(0, -1)
+    }
 }
 
 function expressionToString(expression: Expression) {
     let expressionString = ""
     expression.tokenValues.forEach(token => {
         if (token instanceof Variable) {
+            console.log(token)
             expressionString += token.value
         } else if (token instanceof Value) {
             if (typeof token.x == "number") {
@@ -26,11 +30,12 @@ function expressionToString(expression: Expression) {
                 expressionString += '"' + token.x + '"'
             }
         } else if (Object.values(Operators).includes(token as Operators)) {
-            const operator = (token as Operators).valueOf()
-            operator.replace("and", "&&")
-            operator.replace("or", "||")
+            let operator = (token as Operators).valueOf()
+            operator = operator.replace("and", "&&")
+            operator = operator.replace("or", "||")
             expressionString += operator
         } else if (token instanceof GeoQLFunction) {
+
             expressionString += token.name + "("
 
             if (token.argument instanceof Variable) {
@@ -43,7 +48,9 @@ function expressionToString(expression: Expression) {
 
             expressionString += ")"
         } else {
+            expressionString += "("
             expressionString += expressionToString(token as Expression)
+            expressionString += ")"
         }
 
         expressionString += " "

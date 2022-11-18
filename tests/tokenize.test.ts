@@ -19,6 +19,7 @@ describe('Tokenizer', () => {
     const select12 = 'select * from layer1 where layer1.name == "Spandau" or Intersect(layer2) and layer1.type == "Forest")'
     const select13 = "select name, type from layer1 where geometry.size < 100"
     const select14 = "select name from layer1 where geometry.size < 100"
+    const select15 = 'select * from layer1 where layer1.name == "Spandau" and Intersect("forest")'
 
     it('should tokenize select1 statement', () => {
 
@@ -76,7 +77,7 @@ describe('Tokenizer', () => {
                 { type: TokenTypes.VALUE, value: 'Spandau' },
                 { type: TokenTypes.OPERATOR, value: 'and' },
                 { type: TokenTypes.FUNCTION, value: 'Intersect' },
-                { type: TokenTypes.ARGUMENT, value: 'layer2' },
+                { type: TokenTypes.ARGUMENT, value: 'layer2', subtype: TokenTypes.VARIABLE},
             ]
         }
 
@@ -97,7 +98,7 @@ describe('Tokenizer', () => {
                 { type: TokenTypes.OPERATOR, value: 'or' },
                 { type: TokenTypes.GROUP_START, value: '(' },
                 { type: TokenTypes.FUNCTION, value: 'Intersect' },
-                { type: TokenTypes.ARGUMENT, value: 'layer2' },
+                { type: TokenTypes.ARGUMENT, value: 'layer2', subtype: TokenTypes.VARIABLE },
                 { type: TokenTypes.OPERATOR, value: 'and' },
                 { type: TokenTypes.VARIABLE, value: 'layer1.type' },
                 { type: TokenTypes.OPERATOR, value: '==' },
@@ -153,7 +154,7 @@ describe('Tokenizer', () => {
                 { type: TokenTypes.VALUE, value: 'Spandau' },
                 { type: TokenTypes.OPERATOR, value: 'and' },
                 { type: TokenTypes.FUNCTION, value: 'Intersect' },
-                { type: TokenTypes.ARGUMENT, value: '' },
+                { type: TokenTypes.ARGUMENT, value: '' , subtype: TokenTypes.VALUE},
             ]
         }
 
@@ -202,6 +203,26 @@ describe('Tokenizer', () => {
         }
 
         expect(tokenize(select14)).to.deep.equal(expectedResult);
+    })
+
+    it('should tokenize select15 statement with function', () => {
+        const expectedResult = {
+            tokens: [
+                { type: TokenTypes.KEYWORD, value: 'select' },
+                { type: TokenTypes.VARIABLE, value: '*' },
+                { type: TokenTypes.KEYWORD, value: 'from' },
+                { type: TokenTypes.VARIABLE, value: 'layer1' },
+                { type: TokenTypes.KEYWORD, value: 'where' },
+                { type: TokenTypes.VARIABLE, value: 'layer1.name' },
+                { type: TokenTypes.OPERATOR, value: '==' },
+                { type: TokenTypes.VALUE, value: 'Spandau' },
+                { type: TokenTypes.OPERATOR, value: 'and' },
+                { type: TokenTypes.FUNCTION, value: 'Intersect' },
+                { type: TokenTypes.ARGUMENT, value: 'forest', subtype: TokenTypes.VALUE},
+            ]
+        }
+
+        expect(tokenize(select15)).to.deep.equal(expectedResult);
     })
 
 });
