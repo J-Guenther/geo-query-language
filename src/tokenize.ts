@@ -2,6 +2,7 @@ import {Keywords} from "./constants/keywords";
 import {Operators} from "./constants/operators";
 import {TokenTypes} from "./constants/tokenTypes";
 import {TokenType} from "./models/tokenType";
+import {isNumeric} from "./utils/isNumeric";
 
 export function tokenize(raw: string): Error | { tokens: TokenType[] } {
 
@@ -91,13 +92,15 @@ export function tokenize(raw: string): Error | { tokens: TokenType[] } {
                 } else if (raw[pos] === ")") {
                     // if no arguments were given then TokenType is also value but with an empty string
                     subtype = TokenTypes.VALUE
+                } else if (isNumeric(raw[pos])) {
+                    subtype = TokenTypes.VALUE
                 }
                 while ((allowedChars.includes(raw[pos]) || raw[pos] === ".") && raw[pos] !== ")" && raw[pos] !== "\"" && pos < length) {
                     token += raw[pos]
                     pos++
                 }
 
-                if (subtype == TokenTypes.VALUE && token.length) {
+                if (subtype == TokenTypes.VALUE && token.length && !isNumeric(token)) {
                     if (raw[pos] !== '\"') {
                         throw new Error("Unterminated quotations")
                     } else {

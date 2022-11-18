@@ -6,6 +6,7 @@ import {TokenType} from "./models/tokenType";
 import {Value} from "./models/value";
 import {GeoQLFunction} from "./models/geoQLFunction";
 import {Variable} from "./models/variable";
+import {isNumeric} from "./utils/isNumeric";
 
 export function parse(tokens: TokenType[]) {
     const select: Select = {apply: null, columns: null, from: {as: null, table: null}, where: null}
@@ -95,7 +96,7 @@ function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boo
             expression.tokenValues.push(Operators[key])
         } else if (currentToken.type === TokenTypes.VALUE) {
             let x
-            if (isNumber(currentToken.value)) {
+            if (isNumeric(currentToken.value)) {
                 x = Number(currentToken.value)
             } else {
                 x = currentToken.value
@@ -140,14 +141,4 @@ function parseExpression(pos: number, len: number, tokens: TokenType[], sub: boo
     return {pos, expression};
 }
 
-function isNumber(str: string): boolean {
-    if (typeof str !== 'string') {
-        return false;
-    }
 
-    if (str.trim() === '') {
-        return false;
-    }
-
-    return !Number.isNaN(Number(str));
-}
