@@ -5,19 +5,37 @@ import {Variable} from "./models/variable";
 import {Value} from "./models/value";
 import {Operators} from "./constants/operators";
 import {GeoQLFunction} from "./models/geoQLFunction";
+import {FeatureCollection} from "./geo/featureCollection";
+import {Feature} from "./geo/feature";
 
-export function runStatement(select: Select) {
+export function runStatement(select: Select): FeatureCollection {
     const namespace = Namespace.Instance
 
     const featureCollection = namespace.getFeatureCollection(select.from.table.value)
 
-    const expression = expressionToString(select.where)
-    if (expression.endsWith(" ")) {
-        return expression.slice(0, -1)
-    }
+    const expression = getExpressionString(select.where)
+
+    const features = filterFeatures(featureCollection, expression)
+
+    const filteredFc = new FeatureCollection()
+    filteredFc.id = "new"
+    filteredFc.features = features
+    return filteredFc
 }
 
-function expressionToString(expression: Expression) {
+export function filterFeatures(fc: FeatureCollection, expression: string): Feature[] {
+    // TODO filter features
+}
+
+export function getExpressionString(expression: Expression) {
+    const expressionString = expressionToString(expression)
+    if (expressionString.endsWith(" ")) {
+        return expressionString.slice(0, -1)
+    }
+    return expressionString
+}
+
+export function expressionToString(expression: Expression) {
     let expressionString = ""
     expression.tokenValues.forEach(token => {
         if (token instanceof Variable) {
